@@ -13,19 +13,25 @@ for obj_index=1:nobjects
     intensity = parameter(obj_index, 6);
     alpha = parameter(obj_index, 7);
 
-    [itop, jtop] = floats2pixels(xcenter - radius*a, ycenter - radius*b, res);
-    [ibottom, jbottom] = floats2pixels(xcenter+radius*a, ycenter+radius*b, res);
+    %     https://math.stackexchange.com/questions/91132/how-to-get-the-limits-of-rotated-ellipse
+    xleft = xcenter - sqrt(a^2 * radius^2 * cos(alpha)^2 + b^2 * radius^2 * sin(alpha)^2);
+    xright = xcenter + sqrt(a^2 * radius^2 * cos(alpha)^2 + b^2 * radius^2 * sin(alpha)^2);
+    ytop = ycenter + sqrt(a^2 * radius^2 * sin(alpha)^2 + b^2 * radius^2 * cos(alpha)^2);
+    ybottom = ycenter - sqrt(a^2 * radius^2 * sin(alpha)^2 + b^2 * radius^2 * cos(alpha)^2);
+
+    [itop, jtop] = floats2pixels(xleft, ytop, res);
+    [ibottom, jbottom] = floats2pixels(xright, ybottom, res);
 
     for i = itop:ibottom
         for j = jtop:jbottom
             
             [x,y] = pixels2floats(i,j,res);
-            if ((x-xcenter)/a)^2+((y-ycenter)/b)^2 <= radius^2
+            x = x - xcenter;
+            y = y - ycenter;
+            if ((x*cos(alpha)-y*sin(alpha))/a)^2+((x*sin(alpha)+y*cos(alpha))/b)^2 <= radius^2
                 phantom(i,j) = phantom(i,j) + intensity;
             end
         end
     end
 end
-
 end
-
