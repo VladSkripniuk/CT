@@ -34,4 +34,6 @@ for obj_index=1:nobjects
         end
     end
 end
+%save('phantom.mat', phantom);
+
 end
