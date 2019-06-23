@@ -1,4 +1,4 @@
-function phantom = PhantomCircle(parameter,res)
+ function phantom = PhantomCircle(parameter,res)
 %PhatomCircle Summary of this function goes here
 %   Detailed explanation goes here
 phantom = zeros(2*res+1,2*res+1);
@@ -28,7 +28,8 @@ for obj_index=1:nobjects
             [x,y] = pixels2floats(i,j,res);
             x = x - xcenter;
             y = y - ycenter;
-            if ((x*cos(alpha)-y*sin(alpha))/a)^2+((x*sin(alpha)+y*cos(alpha))/b)^2 <= radius^2
+%             ellipse is rotated by alpha counterclockwise
+            if ((x*cos(alpha)+y*sin(alpha))/a)^2+((x*sin(alpha)-y*cos(alpha))/b)^2 <= radius^2
                 phantom(i,j) = phantom(i,j) + intensity;
             end
         end
