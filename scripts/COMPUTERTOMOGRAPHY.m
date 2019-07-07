@@ -5,17 +5,26 @@
 filter = 'Shepp-Logan';
 % filter = 'no filter';
 
-% approach = 'analytic';
-approach = 'integral';
+approach = 'analytic';
+% approach = 'integral';
+
+%method = 'fb';
+method = 'art';
 
 resultsfigure = figure;
 set(resultsfigure,'PaperPositionMode','auto')
 
 objects = InitObjects();
-res = 255;
+%res = 255;
+res = 128;
 
 p = 300;
+%p = 150;
 q = 100;
+%q = 50;
+
+numberofiterations = 10;
+lambda = 1;
 
 tstart = tic;
 phantom = PhantomCircle(objects, res);
@@ -24,12 +33,6 @@ fprintf("phantom generation: %0.2e s\n", toc(tstart));
 % img = imread('../pics/lung.jpg');
 % img = rgb2gray(img);
 % phantom = imresize(img, [255*2+1, 255*2+1]);
-
-h1 = subplot(2,3,1);
-disp(get(h1, 'Position'));
-imshow(phantom, [min(min(phantom)) max(max(phantom))]), colorbar;
-disp(get(h1, 'Position'));
-title('Phantom');
 
 tstart = tic;
 if strcmp(approach, 'analytic')
@@ -41,39 +44,83 @@ else
 end
 fprintf("sinogram generation: %0.2e s\n", toc(tstart));
 
-subplot(2,3,2);
-imshow(sinogram,[min(min(sinogram)),max(max(sinogram))]), colorbar;
-title('Sinogram');
 
-s = linspace(-1, 1, 2*q+1);
-b = 100*pi;
-wb = CalculateFilter(s, b, filter);
-%wb = CalculateFilter(s, b, 'no filter');
 
-tstart = tic;
-convolution = CalculateConvolution(sinogram, p, q, wb);
-fprintf("precompute convolutions: %0.2e s\n", toc(tstart));
+if strcmp(method, 'art')
+    % reshape sinogram into a vector
+    g = reshape(sinogram, [size(sinogram, 1)*size(sinogram, 2), 1]);
+    
+    tstart = tic;
+    A = CalculateA(p, q, (2*res+1)*(2*res+1));
+    fprintf("calculation of matrix A: %0.2e s\n", toc(tstart));
+    
+    tstart = tic;
+    F = Kaczmarz(A, g, lambda, numberofiterations);
+    fprintf("Kaczmarz Method: %0.2e s\n", toc(tstart));
 
-subplot(2,3,3);
-imshow(convolution,[min(min(convolution)), max(max(convolution))]), colorbar;
-title('Convolution');
+    % reshape result vector into a square image
+    fFBI = reshape(F, [2*res+1, 2*res+1]);
+else
+    s = linspace(-1, 1, 2*q+1);
+    b = 100*pi;
+    wb = CalculateFilter(s, b, filter);
+    %wb = CalculateFilter(s, b, 'no filter');
 
-tstart = tic;
-fFBI = CalculateBackprojection(convolution, p, q, res);
-fprintf("FBI: %0.2e s\n", toc(tstart));
+    tstart = tic;
+    convolution = CalculateConvolution(sinogram, p, q, wb);
+    fprintf("precompute convolutions: %0.2e s\n", toc(tstart));
 
-subplot(2,3,4);
-imshow(fFBI,[min(min(fFBI)) max(max(fFBI))]), colorbar;
-title('fFBI');
-
+    tstart = tic;
+    fFBI = CalculateBackprojection(convolution, p, q, res);
+    fprintf("FBI: %0.2e s\n", toc(tstart));
+end
 
 error = abs(phantom - fFBI);
-subplot(2,3,5);
-imshow(error,[min(min(error)) max(max(error))]), colorbar;
-title('error');
 
-set(gcf,'position',[100 100 1920 1080])
-print(resultsfigure, '-dpng', sprintf('../pics/reconstruction_p%d_q%d_b100pi_w_%s_%s.png', p, q, approach, filter), '-r300');
+
+% Plot the results:
+if strcmp(method, 'art')
+    subplot(1,3,1);
+    imshow(phantom, [min(min(phantom)) max(max(phantom))]), colorbar;
+    title('Phantom');
+    
+    subplot(1,3,2);
+    imshow(sinogram,[min(min(sinogram)),max(max(sinogram))]), colorbar;
+    title('Sinogram');
+    
+    subplot(1,3,3);
+    imshow(fFBI,[min(min(fFBI)) max(max(fFBI))]), colorbar;
+    title('fFBI');
+    
+    set(gcf,'position',[100 100 1920 1080])
+    print(resultsfigure, '-dpng', sprintf('../pics/Kaczmarz_p%d_q%d_b100pi_w_%s_lam%d_it%d.png', p, q, approach, lambda, numberofiterations), '-r300');
+else
+    h1 = subplot(2,3,1);
+    disp(get(h1, 'Position'));
+    imshow(phantom, [min(min(phantom)) max(max(phantom))]), colorbar;
+    disp(get(h1, 'Position'));
+    title('Phantom');
+
+    subplot(2,3,2);
+    imshow(sinogram,[min(min(sinogram)),max(max(sinogram))]), colorbar;
+    title('Sinogram');
+
+    subplot(2,3,3);
+    imshow(convolution,[min(min(convolution)), max(max(convolution))]), colorbar;
+    title('Convolution');
+
+    subplot(2,3,4);
+    imshow(fFBI,[min(min(fFBI)) max(max(fFBI))]), colorbar;
+    title('fFBI');
+
+    subplot(2,3,5);
+    imshow(error,[min(min(error)) max(max(error))]), colorbar;
+    title('error');
+    
+    set(gcf,'position',[100 100 1920 1080])
+    print(resultsfigure, '-dpng', sprintf('../pics/reconstruction_p%d_q%d_b100pi_w_%s_%s.png', p, q, approach, filter), '-r300');
+end
+    
 
 
 %% Noise Level Experiment

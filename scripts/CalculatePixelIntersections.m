@@ -17,7 +17,7 @@ for y=1:-2/(2*res+1):-1
    end
    x = (s - y*omega(2)) / omega(1);
    %fprintf('x:%.2f', x)
-   if (abs(x) > 1.004)
+   if (abs(x) > 1.0004)
        continue
    end
    number_of_intersections_with_horizontal = number_of_intersections_with_horizontal + 1;
