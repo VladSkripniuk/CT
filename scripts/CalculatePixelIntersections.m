@@ -13,7 +13,7 @@ pixel_intersections_with_horizontal = zeros(2*res+2, 2);
 pixel_intersections_with_vertical = zeros(2*res+2, 2);
 
 %for y=1:-2/(2*res+1):-1
-for i = 0:(2*q+1)
+for i = 0:(2*res+1)
     y = 1 - i * 2 / (2*res+1);
     %fprintf('y:%.2f', y)
     if (abs(omega(1)) < eps)
@@ -30,7 +30,7 @@ for i = 0:(2*q+1)
 end
 
 %for x=1:-2/(2*res+1):-1
-for j = 0:(2*q+1)
+for j = 0:(2*res+1)
     x = -1 + j * 2 / (2*res+1);
     %fprintf('x:%f\n', x)
     if (abs(omega(2)) < eps)
