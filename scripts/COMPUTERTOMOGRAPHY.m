@@ -8,15 +8,15 @@ filter = 'Shepp-Logan';
 approach = 'analytic';
 % approach = 'integral';
 
-%method = 'fb';
-method = 'art';
+method = 'fb';
+%method = 'art';
 
 resultsfigure = figure;
 set(resultsfigure,'PaperPositionMode','auto')
 
 objects = InitObjects();
-%res = 255;
-res = 128;
+res = 255;
+%res = 128;
 
 p = 300;
 %p = 150;
@@ -118,12 +118,12 @@ else
     title('error');
     
     set(gcf,'position',[100 100 1920 1080])
-    print(resultsfigure, '-dpng', sprintf('../pics/reconstruction_p%d_q%d_b100pi_w_%s_%s.png', p, q, approach, filter), '-r300');
+    print(resultsfigure, '-dpng', sprintf('../pics/reconstruction_p%d_q%d_b100pi_w_%s_%s_TEST.png', p, q, approach, filter), '-r300');
 end
     
 
 
-%% Noise Level Experiment
+%% Noise Level Experiment (Ex 2c))
 filter = 'Ram-Lak';
 % filter = 'Cosine';
 
@@ -182,7 +182,7 @@ end
 set(gcf,'position',[100 100 1920 1080])
 print(resultsfigure, '-dpng', sprintf('../pics/reconstruction_p%d_q%d_b100pi_w_%s_%s_noise.png', p, q, approach, filter), '-r300');
 
-%% Cut-Off Frequency Experiment
+%% Cut-Off Frequency Experiment (Ex 2d))
 filter = 'Shepp-Logan';
 approach = 'analytic';
 noise_level = 0.2;
@@ -244,7 +244,7 @@ set(gcf,'position',[100 100 1920 1080])
 print(resultsfigure, '-dpng', sprintf('../pics/reconstruction_p%d_q%d_w_%s_%s_blevels.png', p, q, approach, filter), '-r300');
 
 
-%% FBPTest
+%% FBPTest (Ex 2e))
 % filter = 'Ram-Lak';
 % filter = 'Cosine';
 filter = 'Shepp-Logan';
@@ -315,6 +315,112 @@ title('error');
 
 set(gcf,'position',[100 100 1920 1080])
 print(resultsfigure, '-dpng', sprintf('../pics/reconstruction_FBPTest_p%d_q%d_b100pi_w_%s_%s.png', p, q, approach, filter), '-r300');
+
+
+%% Sinogram Comparison (Ex 2f))
+
+resultsfigure = figure;
+set(resultsfigure,'PaperPositionMode','auto')
+
+objects = InitObjects();
+%res = 255;
+res = 255;
+
+p = 600;
+%p = 150;
+q = 200;
+%q = 50;
+
+tstart = tic;
+phantom = PhantomCircle(objects, res);
+fprintf("phantom generation: %0.2e s\n", toc(tstart));
+
+tstart = tic;
+sinogram_analytic = GenerateMeasuredData(p, q, objects);
+analytic_time = toc(tstart);
+fprintf("sinogram generation (analytic): %0.2e s\n", analytic_time);
+tstart = tic;
+sinogram_integration = GenerateMeasuredDataIntegration(p, q, phantom);
+integration_time = toc(tstart);
+fprintf("sinogram generation (integration): %0.2e s\n", integration_time);
+
+%Plot Sinograms only
+subplot(1, 2, 1);
+imshow(sinogram_analytic,[min(min(sinogram_analytic)),max(max(sinogram_analytic))]), colorbar;
+title(sprintf('Analytic Calculation, time: %f', analytic_time));
+subplot(1, 2, 2);
+imshow(sinogram_integration,[min(min(sinogram_integration)),max(max(sinogram_integration))]), colorbar;
+title(sprintf('Calculation via Integration, time: %f', integration_time));
+set(gcf,'position',[100 100 1920 1080])
+print(resultsfigure, '-dpng', sprintf('../pics/sinogram_comparison_p%d_q%d_res%d.png', p, q, res), '-r300');
+
+
+%Include Plot of Phantom
+% subplot(1, 3, 1);
+% imshow(phantom,[min(min(phantom)),max(max(phantom))]), colorbar;
+% title(sprintf('Shepp-Logan Phantom, Resolution: %d', res));
+% subplot(1, 3, 2);
+% imshow(sinogram_analytic,[min(min(sinogram_analytic)),max(max(sinogram_analytic))]), colorbar;
+% title(sprintf('Analytic Calculation, time: %f', analytic_time));
+% subplot(1, 3, 3);
+% imshow(sinogram_integration,[min(min(sinogram_integration)),max(max(sinogram_integration))]), colorbar;
+% title(sprintf('Calculation via Integration, time: %f', integration_time));
+% set(gcf,'position',[100 100 1920 1080])
+% print(resultsfigure, '-dpng', sprintf('../pics/sinogram_comparison_p%d_q%d_res%d_phantom.png', p, q, res), '-r300');
+
+%% Limited Angles (Ex 2g))
+
+%filter = 'Ram-Lak';
+% filter = 'Cosine';
+filter = 'Shepp-Logan';
+
+approach = 'analytic';
+
+resultsfigure = figure;
+set(resultsfigure,'PaperPositionMode','auto')
+
+objects = InitObjects();
+res = 255;
+
+p = 300;
+q = 100;
+
+% tstart = tic;
+% phantom = PhantomCircle(objects, res);
+% fprintf("phantom generation: %0.2e s\n", toc(tstart));
+
+s = linspace(-1, 1, 2*q+1);
+b = 100*pi;
+wb = CalculateFilter(s, b, filter);
+%wb = CalculateFilter(s, b, 'no filter');
+
+angle_restr = [0, pi/9, 2*pi/9, 3*pi/9, 4*pi/9];
+n_levels = size(angle_restr, 2);
+
+for angle_index=1:n_levels
+    
+    tstart = tic;
+
+    sinogram = GenerateMeasuredData(p, q, objects, angle_restr(angle_index));
+
+    fprintf("sinogram generation: %0.2e s\n", toc(tstart));
+
+    subplot(3, n_levels, angle_index);
+    imshow(sinogram,[min(min(sinogram)),max(max(sinogram))]), colorbar;
+    title(sprintf('angle min = %d*\\pi/9 \n angle max = %d*\\pi/9', angle_index-1, 9-(angle_index-1)));
+    
+    subplot(3, n_levels, n_levels + angle_index);
+    convolution = CalculateConvolution(sinogram, p, q, wb);
+    imshow(convolution,[min(min(convolution)),max(max(convolution))]), colorbar;
+
+    subplot(3, n_levels, 2*n_levels + angle_index);
+    fFBI = CalculateBackprojection(convolution, p, q, res, angle_restr(angle_index));
+    imshow(fFBI,[min(min(fFBI)),max(max(fFBI))]), colorbar;
+    
+end
+
+set(gcf,'position',[100 100 1920 1080])
+print(resultsfigure, '-dpng', sprintf('../pics/reconstruction_p%d_q%d_b100pi_w_%s_%s_limangles.png', p, q, approach, filter), '-r300');
 
 
 %% ART
