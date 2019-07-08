@@ -8,12 +8,14 @@ F = zeros(M,1);
 
 for k=1:num_iter
     
+    permutation_of_row_indices = randperm(N);
+    
     for step_index=1:N
         
-        row_index = randi(N, 1);
+        row_index = permutation_of_row_indices(step_index);
 
         j = mod(row_index-1, 2*q+1) - q;
-        i = floor(row_index / (2*q+1));
+        i = floor(row_index / (2*q+1)) + 1;
 %         (i-1)*(2*q+1)+j+q+1
 
         phi = (i-1)*pi/p;
@@ -23,23 +25,28 @@ for k=1:num_iter
         A_row = reshape(A_row, 1, M);
 
         intersections_with_boundary = CalculatePixelIntersections(phi, s, 1);
-        i = 2;
-        while i < size(intersections_with_boundary, 1) ...
-                && norm(intersections_with_boundary(1, :)-intersections_with_boundary(i, :)) < 1e-4
-            i = i + 1;
+        index = 2;
+        while index < size(intersections_with_boundary, 1) ...
+                && norm(intersections_with_boundary(1, :)-intersections_with_boundary(index, :)) < 1e-4
+            index = index + 1;
         end
         
-        try
-            L = norm(intersections_with_boundary(1, :)-intersections_with_boundary(i, :));
-        catch
-            fprintf("j: %d, i: %d\n", j, i);
-            fprintf("phi: %.5f, s: %.5f\n", phi, s);
-            disp(intersections_with_boundary);
-        end
+%         try
+        L = norm(intersections_with_boundary(1, :)-intersections_with_boundary(index, :));
+%         catch
+%             fprintf("j: %d, i: %d\n", j, i);
+%             fprintf("phi: %.5f, s: %.5f\n", phi, s);
+%             disp(intersections_with_boundary);
+%         end
         L = L / (2/sqrt(M));
-%         fprintf("phi: %.5f, s: %.5f, L: %.5f, A_sum:%.5f\n", phi, s, L, sum(A_row));
         
+%         fprintf("i: %d, j: %d, row_index: %d\n", i, j, row_index);
+%         fprintf("phi: %.5f, s: %.5f, L: %.5f, A_sum:%.5f\n", phi, s, L, sum(A_row));
+%         fprintf("g: %.5f, AF: %.5f, g/L: %.5f, AF/sumA:%.5f\n", g(row_index), dot(A_row, F), g(row_index)/L, dot(A_row, F) / sum(A_row));
+%         fprintf("update: %.5f\n", (g(row_index)/L - dot(A_row, F) / sum(A_row)));
         F = F + lambda * (g(row_index)/L - dot(A_row, F) / sum(A_row)) * A_row';
+
+%         fprintf("g: %.5f, AF: %.5f, g/L: %.5f, AF/sumA:%.5f\n", g(row_index), dot(A_row, F), g(row_index)/L, dot(A_row, F) / sum(A_row));
         
         F(F > 1) = 1;
         F(F < 0) = 0;
