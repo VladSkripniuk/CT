@@ -11,7 +11,7 @@ for i=1:p
         
         pixel_intersections = CalculatePixelIntersections(phi, s, M);
         
-        A(i+(j+q)*p,:) = CalculateDistances(pixel_intersections, M);
+        A((i-1)*(2*q+1)+j+q+1,:) = CalculateDistances(pixel_intersections, M);
     end
 end
 

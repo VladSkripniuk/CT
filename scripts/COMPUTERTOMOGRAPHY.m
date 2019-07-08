@@ -256,6 +256,7 @@ tstart = tic;
 fFBI = CalculateBackprojection(convolution, p, q, res);
 fprintf("FBI: %0.2e s\n", toc(tstart));
 
+
 subplot(2,3,4);
 imshow(fFBI,[min(min(fFBI)) max(max(fFBI))]), colorbar;
 title('fFBI');
@@ -267,3 +268,24 @@ title('error');
 
 set(gcf,'position',[100 100 1920 1080])
 print(resultsfigure, '-dpng', sprintf('../pics/reconstruction_FBPTest_p%d_q%d_b100pi_w_%s_%s.png', p, q, approach, filter), '-r300');
+
+
+%% ART
+
+objects = InitObjects();
+
+res = 127;
+M = (2*res+1)^2;
+
+p = 150;
+q = 50;
+
+sinogram = GenerateMeasuredData(p, q, objects);
+g = reshape(sinogram', p * (2*q+1), 1);
+
+tstart = tic;
+A = CalculateA(p, q, M);
+fprintf("Matrix A calculation time: %0.2e s\n", toc(tstart));
+
+% % F = Kaczmarz(zeros(size(A, 2), 1), A, g, 1, 1, "saveplots")
+% F = Kaczmarz(F, A, g, 1, 9, "saveplots")

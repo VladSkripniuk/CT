@@ -5,6 +5,8 @@ function intersections = CalculatePixelIntersections(phi, s, M)
 omega = [cos(phi) sin(phi)];
 res = (sqrt(M)-1) / 2;
 
+eps = 1e-4;
+
 number_of_intersections_with_horizontal = 0;
 number_of_intersections_with_vertical = 0;
 pixel_intersections_with_horizontal = zeros(2*res+2, 2);
@@ -12,12 +14,12 @@ pixel_intersections_with_vertical = zeros(2*res+2, 2);
 
 for y=1:-2/(2*res+1):-1
    %fprintf('y:%.2f', y)
-   if (abs(omega(1)) < 1e-4)
+   if (abs(omega(1)) < eps)
        continue
    end
    x = (s - y*omega(2)) / omega(1);
    %fprintf('x:%.2f', x)
-   if (abs(x) > 1.004)
+   if (abs(x) > 1 + eps)
        continue
    end
    number_of_intersections_with_horizontal = number_of_intersections_with_horizontal + 1;
@@ -27,12 +29,12 @@ end
 
 for x=1:-2/(2*res+1):-1
    %fprintf('x:%f\n', x)
-   if (abs(omega(2)) < 1e-4)
+   if (abs(omega(2)) < eps)
        continue
    end
    y = (s - x*omega(1)) / omega(2);
    %fprintf('y:%f\n', y)
-   if (abs(y) > 1.0004)
+   if (abs(y) > 1 + eps)
        continue
    end
    number_of_intersections_with_vertical = number_of_intersections_with_vertical + 1;
@@ -60,12 +62,12 @@ for l=1:size(intersections, 1)
     %disp(intersections)
     %fprintf('n: %d', n)
     %fprintf('k: %d', k)
-    if n <= size(pixel_intersections_with_horizontal, 1) ...
-       && k <= size(pixel_intersections_with_vertical, 1) ...
-       && norm(pixel_intersections_with_horizontal(n,:) - pixel_intersections_with_vertical(k,:)) < 1e-2
-        n = n+1;
-        continue;
-    end
+%     if n <= size(pixel_intersections_with_horizontal, 1) ...
+%        && k <= size(pixel_intersections_with_vertical, 1) ...
+%        && norm(pixel_intersections_with_horizontal(n,:) - pixel_intersections_with_vertical(k,:)) < 1e-2
+%         n = n+1;
+%         continue;
+%     end
     counter = counter + 1;
     
     if n > size(pixel_intersections_with_horizontal, 1)
