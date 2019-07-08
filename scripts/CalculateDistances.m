@@ -12,6 +12,10 @@ for k=1:size(pointlist, 1)-1
    
    m = (j-1) * sqrt(M) + i;
    
+%    if sqrt((pointlist(k,1)-pointlist(k+1, 1))^2 + (pointlist(k,2)-pointlist(k+1, 2))^2) < 1e-2
+%        continue
+%    end
+%    
    distances(m) = sqrt((pointlist(k,1)-pointlist(k+1, 1))^2 + (pointlist(k,2)-pointlist(k+1, 2))^2);
 end
 
