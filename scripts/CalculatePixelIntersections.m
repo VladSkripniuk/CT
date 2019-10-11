@@ -53,7 +53,7 @@ pixel_intersections_with_vertical = pixel_intersections_with_vertical(1:number_o
 %disp(pixel_intersections_with_horizontal)
 %disp(pixel_intersections_with_vertical)
 
-pixel_intersections_with_vertical = flip(pixel_intersections_with_vertical);
+pixel_intersections_with_vertical = flip(pixel_intersections_with_vertical, 1);
 
 if size(pixel_intersections_with_horizontal,1) > 1 && pixel_intersections_with_horizontal(1,1) < pixel_intersections_with_horizontal(2,1)
     pixel_intersections_with_horizontal = flip(pixel_intersections_with_horizontal);

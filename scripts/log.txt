@@ -1,0 +1,13 @@
+before step 1 MSE: 0.07805
+after step 1 MSE: 0.00217
+after step 2 MSE: 0.00044
+after step 3 MSE: 0.00035
+after step 4 MSE: 0.00019
+after step 5 MSE: 0.00018
+after step 6 MSE: 0.00016
+after step 7 MSE: 0.00015
+after step 8 MSE: 0.00015
+after step 9 MSE: 0.00014
+after step 10 MSE: 0.00014
+after step 11 MSE: 0.00014
+after step 12 MSE: 0.00014

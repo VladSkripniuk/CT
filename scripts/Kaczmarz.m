@@ -1,4 +1,4 @@
-function F = Kaczmarz(A,g,lambda,num_iter,verbosity)
+function F = Kaczmarz(A,g,lambda_schedule,num_iter,verbosity, version, tag)
 %UNTITLED Summary of this function goes here
 %   Detailed explanation goes here
 
@@ -6,48 +6,48 @@ N = size(A, 1);
 
 F = zeros(size(A, 2),1);
 
-% labmda0 = lambda;
+saveplots_after = round(N / 10, 0);
+
+mkdir(sprintf('../pics/%s', tag));
+
+fileID = fopen(sprintf('../pics/%s/log.txt', tag),'w');
+fprintf("before step 1 MSE: %.5f\n", mean((A*F-g).^2));
+fprintf(fileID, "before step 1 MSE: %.5f\n", mean((A*F-g).^2));
 
 for k=1:num_iter
     
-    for i=1:N
+    lambda = lambda_schedule(k);
+    permutation_of_row_indices = randperm(N);
+    
+    for step_index=1:N
         
-% %         lambda = labmda0 / sqrt(((k-1)*N+i)/500);
-%         curve((k-1)*N+i) = norm(A*F - g);
-        j = randi(N, 1);
-        aj = A(j,:);
-%         disp(size(aj));
-%         disp(size(F));
-%         fprintf("offset: %.5f\n", (g(j) - dot(aj, F)));
-%         fprintf("dF: %.5f\n", norm(lambda * (g(j) - dot(aj, F)) / (norm(aj)^2) * aj));
-%         if norm(aj) < 1e-3
-%             continue;
-%         end
-%       
-%         if norm(lambda * (g(j) - dot(aj, F)) * aj' / norm(aj)^2) > 3
-%             fprintf("iter: %d, update: %.5f\n", i, norm(lambda * (g(j) - dot(aj, F)) * aj' / norm(aj)^2));
-%             fprintf("g: %.5f, diff: %.5f, a: %.5f\n", g(j), g(j) - dot(aj, F), norm(aj));
-%         end
-%         F0 =F;
-        F = F + lambda * (g(j) - dot(aj, F)) * aj' / norm(aj)^2;
+        if version == "randomized"
+            row_index = permutation_of_row_indices(step_index);
+        else
+            row_index = step_index;
+        end
+        
+        aj = A(row_index,:);
+
+        F = F + lambda * (g(row_index) - dot(aj, F)) * aj' / norm(aj)^2;
         F(F > 1) = 1;
         F(F < 0) = 0;
-        if strcmp(verbosity, "saveplots") && mod(i, 1010) == 0
+        
+        if strcmp(verbosity, "saveplots") && mod(step_index, saveplots_after) == 0
    
             img = reshape(F, round(sqrt(size(F, 1))), round(sqrt(size(F, 1))));
             
-            resultsfigure = figure;
+            resultsfigure = figure('visible', 'off');
             imshow(img,[min(F) max(F)]);
-            print(resultsfigure, '-dpng', sprintf('../pics/kaczmarz/%d.png', k*1000000+i), '-r300');
+            print(resultsfigure, '-dpng', sprintf('../pics/%s/%d.png', tag, k*1000000+step_index), '-r300');
             close;
         end
     end
-    fprintf("MSE: %.5f\n", mean((A*F-g).^2))
-    lambda = lambda / 2;
+    fprintf("after step %d MSE: %.5f\n", k, mean((A*F-g).^2));
+    fprintf(fileID, "after step %d MSE: %.5f\n", k, mean((A*F-g).^2));
 end
 
-% fprintf("change: %.5f\n", norm(F-F_0))
-% fprintf("change AF: %.5f\n", norm(A*F-A*F_0))
+fclose(fileID);
 
 end
 
